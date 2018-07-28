@@ -1,8 +1,22 @@
 const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d")
 const ballRadius = 5;
-const paddleHeight = 20;
+const paddleHeight = 30;
 const paddleWidth = 5;
+const brickRowCount = 5;
+const brickColumnCount = 5;
+const brickWidth = 10;
+const brickHeight = 10;
+const brickPadding = 10;
+const brickOffsetTop = 30;
+const brickOffsetRight = canvas.width - 60;
+const bricks = []
+for (let c = 0; c < brickColumnCount; c++) {
+  bricks[c] = []
+  for (let r = 0; r < brickRowCount; r++) {
+    bricks[c][r] = { x: 0, y: 0, status: 1 }
+  }
+}
 
 let paddleY = (canvas.height - paddleHeight)/2;
 let upPressed = false;
@@ -12,7 +26,39 @@ let ballY = canvas.height/2;
 let dx = .5;
 let dy = -.5;
 
-function drawPaddle() {
+function drawBricks() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      let brickX = (c*(brickWidth+brickPadding)) + brickOffsetRight
+      let brickY = (r*(brickWidth+brickPadding)) + brickOffsetTop
+      if (bricks[c][r].status === 1) {
+        bricks[c][r].x = brickX;
+        bricks[c][r].y = brickY;
+        ctx.beginPath();
+        ctx.rect(brickX, brickY, brickWidth, brickHeight);
+        ctx.fillStyle = "black";
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+  }
+}
+
+function collisionDetection() {
+  for (let c = 0; c < brickColumnCount; c++) {
+    for (let r = 0; r < brickRowCount; r++) {
+      let b = bricks[c][r];
+      if (b.status === 1) {
+        if (ballX > b.x && ballX < b.x + brickWidth & ballY > b.y && ballY < b.y + brickHeight) {
+          dx = -dx;
+          b.status = 0;
+        }
+      }
+    }
+  }
+}
+
+function drawPaddleLeft() {
   ctx.beginPath();
   ctx.rect(0, paddleY, paddleWidth, paddleHeight);
   ctx.fillStyle = "blue";
@@ -30,7 +76,9 @@ function drawBall() {
 
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height,);
-  drawPaddle();
+  drawPaddleLeft();
+  collisionDetection()
+  drawBricks();
   drawBall();
   if (ballY + dy - ballRadius < 0 || ballY + dy + ballRadius > canvas.height) {
     dy = -dy
@@ -50,10 +98,10 @@ function draw() {
 
 
   if (downPressed && paddleY < canvas.height - paddleHeight) {
-    paddleY += 2
+    paddleY += 1
   }
   else if (upPressed && paddleY > 0) {
-    paddleY -= 2
+    paddleY -= 1
   }
 
   ballX += dx;
@@ -81,4 +129,4 @@ function keyUpHandler(event) {
   }
 }
 
-setInterval(draw, 10)
+setInterval(draw, 5)
